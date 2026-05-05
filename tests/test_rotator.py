@@ -290,3 +290,59 @@ def test_rotation_state_persisted(store):
     cursor, slot_counts = store.load_rotation_state("general_purpose")
     assert cursor >= 0
     assert isinstance(slot_counts, dict)
+
+
+# --- Bug 1 (issue #9): round-robin reset must fire after a full cycle ---
+
+def test_rotation_reset_fires_after_full_cycle(store):
+    """A provider must not be repeated more than rotate_every times in a row.
+
+    Regression test for issue #9: the old reset condition never fired, so the
+    last provider in the rotation order was selected indefinitely.
+    """
+    rot = Rotator(store, PROVIDER_CONFIGS, rotate_every=2)
+    _add_key(store, "groq", "key1")
+    _add_key(store, "mistral", "key2")
+    _add_key(store, "cohere", "key3")
+
+    providers = []
+    for _ in range(12):
+        k = rot.get_best_key("general_purpose")
+        rot.handle_success(k["key_id"], tokens_used=10)
+        providers.append(k["provider"])
+
+    # No provider may appear more than rotate_every (2) times consecutively
+    for i in range(len(providers) - 2):
+        assert not (providers[i] == providers[i + 1] == providers[i + 2]), \
+            f"provider {providers[i]!r} repeated >2x at index {i}: {providers}"
+
+
+# --- Bug 2 (issue #10): slot_count scoped per capability voice ---
+
+def test_slot_count_not_polluted_across_voices(store):
+    """Traffic in one voice must not skew rotation in another voice.
+
+    Regression test for issue #10: _slot_count was a single global dict shared
+    by all capability voices, so a 429/success in `agentic` incremented the
+    counter and skipped the same key in `fast`.
+    """
+    rot = Rotator(store, PROVIDER_CONFIGS, rotate_every=1)
+    # One key usable in both voices
+    store.register_key("groq", "key-shared", ["fast", "agentic"], None, {})
+    store.register_key("mistral", "key-mistral", ["fast", "agentic"], None, {})
+
+    # Consume 3 requests in the agentic voice
+    for _ in range(3):
+        k = rot.get_best_key(["agentic"])
+        rot.handle_success(k["key_id"], tokens_used=10)
+
+    # The fast voice must still see a clean rotation (both keys selectable)
+    fast_seen = set()
+    for _ in range(4):
+        k = rot.get_best_key(["fast"])
+        rot.handle_success(k["key_id"], tokens_used=10)
+        fast_seen.add(k["provider"])
+
+    assert "groq" in fast_seen
+    assert "mistral" in fast_seen
+
