@@ -1,0 +1,9 @@
+{
+  "id": "API-009",
+  "category": "api",
+  "description": "Auth middleware (optional)",
+  "status": "partial",
+  "files": [
+    "llm_keypool/api/middleware/auth.py"
+  ]
+}

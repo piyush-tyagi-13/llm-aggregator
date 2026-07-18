@@ -1,0 +1,9 @@
+{
+  "id": "CORE-009",
+  "category": "core",
+  "description": "Embeddings support with family-based routing",
+  "status": "partial",
+  "files": [
+    "llm_keypool/core/embeddings.py"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "DB-003",
+  "category": "db",
+  "description": "Alembic migration 0008 for FreeLLMAPI tables",
+  "status": "partial",
+  "files": [
+    "alembic/versions/0008_add_freellmapi_tables.py"
+  ]
+}

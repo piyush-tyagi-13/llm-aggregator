@@ -1,0 +1,10 @@
+{
+  "id": "CORE-010",
+  "category": "core",
+  "description": "Model metadata and catalog",
+  "status": "partial",
+  "files": [
+    "llm_keypool/core/model_metadata.py",
+    "llm_keypool/core/catalog.py"
+  ]
+}

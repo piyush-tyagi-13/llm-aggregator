@@ -1,0 +1,9 @@
+{
+  "id": "API-003",
+  "category": "api",
+  "description": "/v1/responses (Codex CLI wire format)",
+  "status": "partial",
+  "files": [
+    "llm_keypool/api/routes/responses.py"
+  ]
+}

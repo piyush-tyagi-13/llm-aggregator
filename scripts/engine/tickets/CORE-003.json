@@ -1,0 +1,9 @@
+{
+  "id": "CORE-003",
+  "category": "core",
+  "description": "Rate limiter with RPM/RPD/TPM/TPD tracking and penalty decay",
+  "status": "pending",
+  "files": [
+    "llm_keypool/core/ratelimit.py"
+  ]
+}

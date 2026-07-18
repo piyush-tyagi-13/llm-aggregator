@@ -1,0 +1,301 @@
+# ── FreeLLMAPI Blueprint — Structured Requirements ──────────────────────────
+# This is the "source of truth" that the engine compares against.
+# Each requirement has: id, category, description, status (pending/done/partial)
+
+meta:
+  name: "FreeLLMAPI Translation to llm-keypool"
+  version: "1.0.0"
+  updated: "2026-06-23"
+
+requirements:
+  # ── Core ──────────────────────────────────────────────────────────────
+  - id: "CORE-001"
+    category: "core"
+    description: "Router with 7 strategies: auto, priority, balanced, smartest, fastest, reliable, custom"
+    file: "llm_keypool/core/router.py"
+    check:
+      - "Exists STRATEGY_AUTO = 'auto' constant"
+      - "All 7 constants in VALID_STRATEGIES"
+
+  - id: "CORE-002"
+    category: "core"
+    description: "Thompson sampling scoring with Beta posterior"
+    file: "llm_keypool/core/scoring.py"
+    check:
+      - "Beta(1,1) prior"
+      - "sample_beta() function"
+      - "combine_score() with guardrails"
+      - "BANDIT_PRESETS includes 'auto'"
+
+  - id: "CORE-003"
+    category: "core"
+    description: "Rate limiter with RPM/RPD/TPM/TPD tracking and penalty decay"
+    file: "llm_keypool/core/ratelimit.py"
+    check:
+      - "can_make_request() function"
+      - "can_use_tokens() function"
+      - "set_cooldown() function"
+      - "is_on_cooldown() function"
+
+  - id: "CORE-004"
+    category: "core"
+    description: "Health checks with auto-probe and manual trigger"
+    file: "llm_keypool/core/health.py"
+    check:
+      - "check_key_health() exists"
+      - "check_all_keys() exists"
+      - "Auto-probe scheduling (periodic check)"
+
+  - id: "CORE-005"
+    category: "core"
+    description: "Sticky sessions with TTL and runtime toggle"
+    file: "llm_keypool/core/sticky.py"
+    check:
+      - "get_or_create() exists"
+      - "release() exists"
+      - "on_success() exists"
+      - "is_sticky_enabled() respects runtime override"
+      - "UI toggle integration"
+
+  - id: "CORE-006"
+    category: "core"
+    description: "Context handoff on model switch"
+    file: "llm_keypool/core/handoff.py"
+    check:
+      - "record_incoming() exists"
+      - "maybe_inject() exists"
+      - "record_successful() exists"
+      - "has_prior_model() exists"
+
+  - id: "CORE-007"
+    category: "core"
+    description: "Model parser for auto.-c=>128k.tool=true format"
+    file: "llm_keypool/core/model_parser.py"
+    check:
+      - "Parses context filters (>=, >, =, <=, <)"
+      - "Parses tool=true/false"
+      - "Parses vision=true/false"
+      - "Parses provider=xxx"
+      - "Parses strategy override via .strategy suffix"
+      - "Returns (base_model, ModelFilter, strategy_override)"
+
+  - id: "CORE-008"
+    category: "core"
+    description: "Fallback with 3+3+3+next strategy"
+    file: "llm_keypool/core/fallback.py"
+    check:
+      - "Phase 1: 3 attempts same model+same key (non-429)"
+      - "Phase 2: 3 attempts same model+other keys same provider"
+      - "Phase 3: 3 attempts same model+all other providers"
+      - "Phase 4: Next model in priority"
+      - "30-minute cooldown after 3 failures"
+
+  - id: "CORE-009"
+    category: "core"
+    description: "Embeddings support with family-based routing"
+    file: "llm_keypool/core/embeddings.py"
+    check:
+      - "Route to embedding-optimized models"
+      - "Family-based provider selection"
+
+  - id: "CORE-010"
+    category: "core"
+    description: "Model metadata and catalog"
+    files:
+      - "llm_keypool/core/model_metadata.py"
+      - "llm_keypool/core/catalog.py"
+    check:
+      - "filter_models() by capabilities"
+      - "Static catalog without premium"
+
+  # ── Provider Adapters ─────────────────────────────────────────────────
+  - id: "PROV-001"
+    category: "providers"
+    description: "All 16 provider adapters registered via @register decorator"
+    file: "llm_keypool/providers/adapters/"
+    check:
+      - "16 adapter files exist"
+      - "Each has @register decorator"
+      - "Each extends OpenAICompatProvider or BaseProvider"
+      - "Each has: platform, name, default_model, base_url"
+
+  - id: "PROV-002"
+    category: "providers"
+    description: "Provider registry with get_provider, has_provider, list_providers"
+    file: "llm_keypool/providers/registry.py"
+    check:
+      - "@register decorator"
+      - "get_provider()"
+      - "has_provider()"
+      - "list_providers()"
+
+  # ── API Routes ────────────────────────────────────────────────────────
+  - id: "API-001"
+    category: "api"
+    description: "/v1/chat/completions with streaming + non-streaming"
+    file: "llm_keypool/api/routes/chat.py"
+    check:
+      - "POST /v1/chat/completions endpoint"
+      - "SSE streaming response"
+      - "Tool calling support (tools parameter)"
+      - "Model filter parsing"
+
+  - id: "API-002"
+    category: "api"
+    description: "/v1/models with dynamic listing"
+    file: "llm_keypool/api/routes/models.py"
+    check:
+      - "GET /v1/models endpoint"
+      - "Returns all available models"
+      - "OpenAI-compatible response format"
+
+  - id: "API-003"
+    category: "api"
+    description: "/v1/responses (Codex CLI wire format)"
+    file: "llm_keypool/api/routes/responses.py"
+    check:
+      - "POST /v1/responses endpoint"
+      - "Builds response object"
+
+  - id: "API-004"
+    category: "api"
+    description: "/v1/embeddings with family-based routing"
+    file: "llm_keypool/api/routes/embeddings.py"
+    check:
+      - "POST /v1/embeddings endpoint"
+
+  - id: "API-005"
+    category: "api"
+    description: "Key management endpoints (plaintext storage)"
+    file: "llm_keypool/api/routes/keys.py"
+    check:
+      - "CRUD operations for keys"
+      - "Plaintext storage (no encryption)"
+
+  - id: "API-006"
+    category: "api"
+    description: "Health check endpoints"
+    file: "llm_keypool/api/routes/health.py"
+    check:
+      - "GET /health endpoint"
+      - "GET /health/check endpoint"
+
+  - id: "API-007"
+    category: "api"
+    description: "Analytics endpoints"
+    file: "llm_keypool/api/routes/analytics.py"
+    check:
+      - "Usage statistics"
+      - "Error breakdowns"
+
+  - id: "API-008"
+    category: "api"
+    description: "Settings with routing strategy, weights, sticky/handoff toggles"
+    file: "llm_keypool/api/routes/settings.py"
+    check:
+      - "GET/PUT routing strategy"
+      - "GET/PUT sticky toggle"
+      - "GET/PUT handoff mode"
+
+  - id: "API-009"
+    category: "api"
+    description: "Auth middleware (optional)"
+    file: "llm_keypool/api/middleware/auth.py"
+    check:
+      - "Optional authentication"
+      - "Pass-through mode"
+
+  - id: "API-010"
+    category: "api"
+    description: "Logging middleware"
+    file: "llm_keypool/api/middleware/logging.py"
+    check:
+      - "Request/response logging"
+      - "Latency tracking"
+
+  # ── Database ──────────────────────────────────────────────────────────
+  - id: "DB-001"
+    category: "db"
+    description: "Combined schema with all FreeLLMAPI tables"
+    file: "llm_keypool/db/schema.py"
+    check:
+      - "models table"
+      - "fallback_config table"
+      - "profiles table"
+      - "settings table"
+      - "sticky_sessions table"
+      - "request_log table"
+
+  - id: "DB-002"
+    category: "db"
+    description: "Database queries module"
+    file: "llm_keypool/db/queries.py"
+    check:
+      - "CRUD operations for new tables"
+
+  - id: "DB-003"
+    category: "db"
+    description: "Alembic migration 0008 for FreeLLMAPI tables"
+    file: "alembic/versions/0008_add_freellmapi_tables.py"
+    check:
+      - "Creates all new tables"
+      - "Proper upgrade() and downgrade()"
+
+  # ── Frontend ──────────────────────────────────────────────────────────
+  - id: "FE-001"
+    category: "frontend"
+    description: "React dashboard with all pages"
+    files:
+      - "frontend/src/components/KeyManager.tsx"
+      - "frontend/src/components/TestConsole.tsx"
+    check:
+      - "KeysPage: key management"
+      - "FallbackPage: fallback chain + profiles"
+      - "AnalyticsPage: charts + breakdowns"
+      - "PlaygroundPage: test prompts"
+      - "SettingsPage: routing strategy, weights, toggles"
+
+  # ── Security ──────────────────────────────────────────────────────────
+  - id: "SEC-001"
+    category: "security"
+    description: "Plaintext API key storage (no encryption)"
+    file: "llm_keypool/key_store.py"
+    check:
+      - "api_key stored as plaintext TEXT"
+      - "No encryption/decryption logic"
+      - "File permissions 600 on DB"
+
+  # ── Configuration ─────────────────────────────────────────────────────
+  - id: "CFG-001"
+    category: "config"
+    description: "providers.json with 40+ providers"
+    file: "llm_keypool/config/providers.json"
+    check:
+      - "All providers listed"
+      - "Limits configured"
+
+  - id: "CFG-002"
+    category: "config"
+    description: "model_quality.json with 4 tiers"
+    file: "llm_keypool/config/model_quality.json"
+    check:
+      - "4 tiers: Frontier, High-Performance, Good OSS, Fallback"
+
+  - id: "CFG-003"
+    category: "config"
+    description: "default_strategies.json with routing weights"
+    file: "llm_keypool/config/default_strategies.json"
+    check:
+      - "Default routing weights"
+      - "Strategy presets"
+
+  # ── Tests ─────────────────────────────────────────────────────────────
+  - id: "TEST-001"
+    category: "tests"
+    description: "319+ tests passing"
+    check:
+      - "All tests pass with no errors"
+      - "Coverage for core modules"
+      - "Coverage for provider adapters"
+      - "Coverage for API routes"
+      - "Coverage for database"

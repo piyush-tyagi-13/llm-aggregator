@@ -1,0 +1,802 @@
+{
+  "providers": {
+    "groq": {
+      "base_url": "https://api.groq.com/openai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 30,
+        "tpm": 6000,
+        "rpd": 14400
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling",
+        "rpd": "daily_utc_midnight"
+      },
+      "quota_api": "headers",
+      "quota_headers": {
+        "remaining_requests": "x-ratelimit-remaining-requests",
+        "remaining_tokens": "x-ratelimit-remaining-tokens",
+        "reset_requests": "x-ratelimit-reset-requests",
+        "reset_tokens": "x-ratelimit-reset-tokens"
+      },
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight",
+        "note": "header-derived reset used when x-ratelimit-reset-requests is present"
+      },
+      "default_model": "llama-3.3-70b-versatile",
+      "capabilities": [
+        "general_purpose",
+        "fast"
+      ]
+    },
+    "cerebras": {
+      "base_url": "https://api.cerebras.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 30,
+        "rph": 900,
+        "rpd": 14400,
+        "tpm": 60000,
+        "tph": 1000000,
+        "tokens_per_day": 1000000,
+        "max_context_tokens": 8192
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling_token_bucket",
+        "rph_tph": "rolling_token_bucket",
+        "tokens_per_day": "daily_utc_midnight"
+      },
+      "quota_api": "headers",
+      "quota_headers": {
+        "remaining_requests_minute": "x-ratelimit-remaining-requests-minute",
+        "remaining_requests_hour": "x-ratelimit-remaining-requests-hour",
+        "remaining_requests_day": "x-ratelimit-remaining-requests-day",
+        "remaining_tokens_minute": "x-ratelimit-remaining-tokens-minute",
+        "remaining_tokens_hour": "x-ratelimit-remaining-tokens-hour",
+        "remaining_tokens_day": "x-ratelimit-remaining-tokens-day"
+      },
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight",
+        "note": "header remaining counts drive cooldown tier: day->midnight, hour->3600s, minute->60s"
+      },
+      "default_model": "llama3.3-70b",
+      "capabilities": [
+        "general_purpose",
+        "fast"
+      ]
+    },
+    "sambanova": {
+      "base_url": "https://api.sambanova.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm_per_model": {
+          "Meta-Llama-3.1-8B-Instruct": 30,
+          "Meta-Llama-3.3-70B-Instruct": 20,
+          "Qwen2.5-72B-Instruct": 20,
+          "Meta-Llama-3.1-405B-Instruct": 10
+        }
+      },
+      "quota_reset": {
+        "rpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_65"
+      },
+      "default_model": "Meta-Llama-3.3-70B-Instruct",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "mistral": {
+      "base_url": "https://api.mistral.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 2,
+        "tpm": 500000,
+        "tokens_per_month": 1000000000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling",
+        "monthly_token_cap": "first_of_calendar_month"
+      },
+      "quota_api": "headers",
+      "quota_headers": {
+        "remaining_requests_minute": "x-ratelimit-remaining-req-minute",
+        "remaining_tokens_minute": "x-ratelimit-remaining-tokens-minute"
+      },
+      "cooldown_fallback": {
+        "strategy": "rolling_60",
+        "note": "header uses 'req' not 'requests'; no reset timestamp, 60s rolling used"
+      },
+      "default_model": "mistral-large-latest",
+      "capabilities": [
+        "general_purpose",
+        "agentic"
+      ]
+    },
+    "openrouter": {
+      "base_url": "https://openrouter.ai/api/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 20,
+        "rpd": 200
+      },
+      "quota_reset": {
+        "rpm": "rolling",
+        "rpd": "daily_utc_midnight"
+      },
+      "quota_api": "endpoint",
+      "quota_endpoint": {
+        "url": "https://openrouter.ai/api/v1/credits",
+        "method": "GET",
+        "auth": "bearer",
+        "response_path": {
+          "total_credits": "data.total_credits",
+          "total_usage": "data.total_usage"
+        }
+      },
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight",
+        "note": "no rate-limit headers observed on live probe; RPD is the binding limit"
+      },
+      "default_model": "meta-llama/llama-3.3-70b-instruct:free",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "cloudflare": {
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run",
+      "openai_compatible": false,
+      "requires_extra": [
+        "account_id"
+      ],
+      "free_tier": true,
+      "limits": {
+        "neurons_per_day": 10000
+      },
+      "quota_reset": {
+        "neurons_per_day": "daily_utc_midnight"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight"
+      },
+      "default_model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "google": {
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 15,
+        "rpd": 1500,
+        "tpm": 1000000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling",
+        "rpd": "daily_utc_midnight"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight",
+        "note": "no rate-limit headers; RPD 1500 is binding limit on free tier"
+      },
+      "default_model": "gemini-2.0-flash",
+      "capabilities": [
+        "general_purpose",
+        "fast"
+      ]
+    },
+    "cohere": {
+      "base_url": "https://api.cohere.com/v2",
+      "openai_compatible": false,
+      "free_tier": true,
+      "limits": {
+        "calls_per_month": 1000,
+        "rpm_chat": 20
+      },
+      "quota_reset": {
+        "rpm": "rolling",
+        "monthly_call_cap": "first_of_calendar_month"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "first_of_calendar_month",
+        "note": "monthly call cap is the binding limit; no headers documented"
+      },
+      "default_model": "command-r-plus-08-2024",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "nvidia_nim": {
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 10,
+        "tpm": 100000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "nvidia/llama-3.1-nemotron-70b-instruct",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "github_models": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://models.inference.ai.azure.com",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 15,
+        "rpd": 150,
+        "max_input_tokens": 8000,
+        "max_output_tokens": 4000,
+        "concurrent_requests": 5
+      },
+      "quota_reset": {
+        "rpm": "rolling",
+        "rpd": "daily_utc_midnight"
+      },
+      "quota_api": "none",
+      "default_model": "gpt-4o-mini"
+    },
+    "zhipu": {
+      "base_url": "https://open.bigmodel.cn/api/paas/v4",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 10,
+        "tpm": 200000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "glm-4-flash",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "ollama_cloud": {
+      "base_url": "https://api.ollama.com",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 20
+      },
+      "quota_reset": {
+        "rpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "llama3.2-3b",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "kilo_gateway": {
+      "base_url": "https://api.kilogateway.com/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "requires_key": false,
+      "limits": {
+        "rpm": 30,
+        "rpd": 500
+      },
+      "quota_reset": {
+        "rpm": "rolling",
+        "rpd": "daily_utc_midnight"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight"
+      },
+      "default_model": "llama-3.3-70b-instruct",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "pollinations": {
+      "base_url": "https://text.pollinations.ai/openai",
+      "openai_compatible": true,
+      "free_tier": true,
+      "requires_key": false,
+      "limits": {
+        "rpm": 30
+      },
+      "quota_reset": {
+        "rpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_120"
+      },
+      "default_model": "openai",
+      "capabilities": [
+        "general_purpose",
+        "fast"
+      ],
+      "no_auth": true
+    },
+    "ovh_ai": {
+      "base_url": "https://endpoints.ai.cloud.ovh.net/api/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "requires_key": false,
+      "limits": {
+        "rpm": 30,
+        "tpm": 50000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "Meta-Llama-3.3-70B-Instruct",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "llm7": {
+      "base_url": "https://api.llm7.com/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "requires_key": false,
+      "limits": {
+        "rpm": 20
+      },
+      "quota_reset": {
+        "rpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "llama-3.3-70b",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "huggingface_router": {
+      "base_url": "https://router.huggingface.co/hf-inference/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 30,
+        "rpd": 500
+      },
+      "quota_reset": {
+        "rpm": "rolling",
+        "rpd": "daily_utc_midnight"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "daily_utc_midnight"
+      },
+      "default_model": "meta-llama/Llama-3.3-70B-Instruct",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "opencode_zen": {
+      "base_url": "https://opencode.ai/zen/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "no_auth": true,
+      "limits": {
+        "rpm": 20,
+        "tpm": 200000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "deepseek-v4-flash-free",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "agnes_ai": {
+      "base_url": "https://api.agnesai.com/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 30,
+        "tpm": 100000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "agnes-1.0",
+      "capabilities": [
+        "general_purpose"
+      ]
+    },
+    "interfaze": {
+      "base_url": "https://api.interfaze.ai/v1",
+      "openai_compatible": true,
+      "free_tier": false,
+      "limits": {
+        "rpm": 50,
+        "tpm": 1000000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "headers",
+      "quota_headers": {
+        "x-ratelimit-remaining-requests": "remaining_requests",
+        "x-ratelimit-remaining-tokens": "remaining_tokens"
+      },
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "interfaze/interfaze-beta",
+      "capabilities": [
+        "general_purpose",
+        "ocr",
+        "structured_output",
+        "web_scraping",
+        "stt",
+        "translation",
+        "classification"
+      ]
+    },
+    "together": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.together.xyz/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 25.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    },
+    "fireworks": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.fireworks.ai/inference/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 1.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "accounts/fireworks/models/llama-v3p3-70b-instruct"
+    },
+    "deepinfra": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "openai_compatible": true,
+      "free_tier": false,
+      "limits": {
+        "concurrent_requests": 200
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "deepseek-ai/DeepSeek-V4-Flash"
+    },
+    "scaleway": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.scaleway.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "free_tokens_total": 1000000
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "llama-3.3-70b-instruct"
+    },
+    "baseten": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://app.baseten.co/model-api",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 30.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "glm-5.2"
+    },
+    "nebius": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.nebius.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 1.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "meta-llama/Meta-Llama-3.1-70B-Instruct"
+    },
+    "novita": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.novita.ai/v3/openai",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 0.5
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "meta-llama/llama-3.3-70b-instruct"
+    },
+    "ai21": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.ai21.com/studio/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 10.0,
+        "credit_duration_days": 90
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "jamba-1.5-large"
+    },
+    "upstage": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.upstage.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 10.0,
+        "credit_duration_days": 90
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "solar-pro"
+    },
+    "nlpcloud": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.nlpcloud.io/v1",
+      "openai_compatible": false,
+      "free_tier": true,
+      "limits": {
+        "credits": 15.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "finetuned-llama-3-70b"
+    },
+    "alibaba": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "free_tokens_per_model": 1000000
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "qwen-plus"
+    },
+    "modal": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.modal.com/v1",
+      "openai_compatible": false,
+      "free_tier": true,
+      "limits": {
+        "monthly_credits": 5.0
+      },
+      "quota_reset": {
+        "monthly_credits": "first_of_calendar_month"
+      },
+      "quota_api": "none",
+      "default_model": null
+    },
+    "inference_net": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.inference.net/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 1.0,
+        "credits_with_survey": 25.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "meta-llama-3-70b-instruct"
+    },
+    "hyperbolic": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.hyperbolic.xyz/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "credits": 1.0
+      },
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "deepseek-ai/DeepSeek-V3-0324"
+    },
+    "vercel": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://gateway.ai.vercel.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "monthly_free_usage": 5.0
+      },
+      "quota_reset": {
+        "monthly_free_usage": "first_of_calendar_month"
+      },
+      "quota_api": "none",
+      "default_model": null
+    },
+    "openai": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.openai.com/v1",
+      "openai_compatible": true,
+      "free_tier": false,
+      "limits": {},
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "gpt-4o-mini"
+    },
+    "anthropic": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.anthropic.com/v1/",
+      "openai_compatible": false,
+      "free_tier": false,
+      "limits": {},
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "claude-3-5-sonnet-20241022"
+    },
+    "replicate": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.replicate.com/v1",
+      "openai_compatible": false,
+      "free_tier": true,
+      "limits": {
+        "prediction_rpm": 600,
+        "other_rpm": 3000,
+        "no_credit_card_rps": 1,
+        "no_credit_card_max_rpm": 6
+      },
+      "quota_reset": {
+        "rpm": "rolling"
+      },
+      "quota_api": "headers_on_429",
+      "default_model": "meta/meta-llama-3-70b-instruct"
+    },
+    "deepseek": {
+      "category": [
+        "general_purpose",
+        "code"
+      ],
+      "base_url": "https://api.deepseek.com/v1",
+      "openai_compatible": true,
+      "free_tier": false,
+      "limits": {},
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "deepseek-chat"
+    },
+    "lepton": {
+      "category": [
+        "general_purpose"
+      ],
+      "base_url": "https://api.lepton.ai/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {},
+      "quota_reset": {},
+      "quota_api": "none",
+      "default_model": "llama3-70b"
+    },
+    "freellmapi": {
+      "base_url": "http://127.0.0.1:3001/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 60,
+        "tpm": 100000,
+        "rpd": 100000
+      },
+      "default_model": "qwen/qwen3-coder:free",
+      "capabilities": [
+        "general_purpose",
+        "fast",
+        "agentic"
+      ],
+      "key_prefix": "freellmapi-"
+    },
+    "paxsenix": {
+      "base_url": "https://api.paxsenix.org/v1",
+      "openai_compatible": true,
+      "free_tier": true,
+      "limits": {
+        "rpm": 30,
+        "tpm": 50000
+      },
+      "quota_reset": {
+        "rpm_tpm": "rolling"
+      },
+      "quota_api": "none",
+      "cooldown_fallback": {
+        "strategy": "rolling_60"
+      },
+      "default_model": "claude-sonnet-4-6",
+      "capabilities": [
+        "general_purpose",
+        "agentic"
+      ]
+    }
+  }
+}

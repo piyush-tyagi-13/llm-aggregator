@@ -1,8 +1,8 @@
-# llm-keypool - Provider Guide
+# llm-apipool - Provider Guide
 
 > Generated: 2026-04-30
 > Purpose: Registration guide for API keys + config source for reset schedules and rate limits.
-> Use this doc to sign up for each provider and register keys into llm-keypool.
+> Use this doc to sign up for each provider and register keys into llm-apipool.
 
 ---
 
@@ -10,8 +10,8 @@
 
 1. Visit each provider's signup URL below
 2. Create account, generate API key
-3. Register key via CLI: `llm-keypool add --provider <name> --key <key>`
-4. llm-keypool loads reset schedules and limits from `providers.json` (derived from this doc)
+3. Register key via CLI: `llm-apipool add --provider <name> --key <key>`
+4. llm-apipool loads reset schedules and limits from `providers.json` (derived from this doc)
 
 ---
 
@@ -33,10 +33,10 @@ Each provider lists its **capabilities** - labels used when registering keys and
 Keys can carry multiple capabilities:
 
 ```bash
-llm-keypool add --provider groq --key gsk_... --capabilities general_purpose,fast
+llm-apipool add --provider groq --key gsk_... --capabilities general_purpose,fast
 ```
 
-Embedding models are out of scope - llm-keypool handles chat/completion only.
+Embedding models are out of scope - llm-apipool handles chat/completion only.
 
 ---
 
@@ -389,7 +389,7 @@ Embedding models are out of scope - llm-keypool handles chat/completion only.
 
 ---
 
-## llm-keypool Configuration Reference
+## llm-apipool Configuration Reference
 
 Below is the data this guide generates into `providers.json`. Edit reset cadences here if provider changes limits.
 

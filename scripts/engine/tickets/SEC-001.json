@@ -1,0 +1,9 @@
+{
+  "id": "SEC-001",
+  "category": "security",
+  "description": "Plaintext API key storage (no encryption)",
+  "status": "partial",
+  "files": [
+    "llm_keypool/key_store.py"
+  ]
+}

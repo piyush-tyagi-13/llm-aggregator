@@ -1,0 +1,9 @@
+{
+  "id": "CFG-002",
+  "category": "config",
+  "description": "model_quality.json with 4 tiers",
+  "status": "pending",
+  "files": [
+    "llm_keypool/config/model_quality.json"
+  ]
+}

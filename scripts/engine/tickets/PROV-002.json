@@ -1,0 +1,9 @@
+{
+  "id": "PROV-002",
+  "category": "providers",
+  "description": "Provider registry with get_provider, has_provider, list_providers",
+  "status": "partial",
+  "files": [
+    "llm_keypool/providers/registry.py"
+  ]
+}

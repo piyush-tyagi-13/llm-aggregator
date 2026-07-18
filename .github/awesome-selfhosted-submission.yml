@@ -1,0 +1,22 @@
+# Awesome Self-Hosted Submission (save for later - project must be >4 months old)
+# Target date: 2026-10-28
+# Steps:
+# 1. Fork https://github.com/awesome-selfhosted/awesome-selfhosted-data
+# 2. Create software/llm-apipool.yml with this content
+# 3. Submit PR
+
+name: llm-apipool
+website_url: https://github.com/GFardad/llm-apipool
+description: Unified CLI/TUI/proxy gateway for 40+ free-tier LLM APIs with intelligent key rotation, rate-limit handling, tier-based fallback, and OpenAI-compatible endpoint.
+licenses:
+  - MIT
+platforms:
+  - Python
+  - Docker
+  - Nodejs
+tags:
+  - Generative Artificial Intelligence (GenAI)
+source_code_url: https://github.com/GFardad/llm-apipool
+stargazers_count: 0
+updated_at: '2026-06-28'
+archived: false

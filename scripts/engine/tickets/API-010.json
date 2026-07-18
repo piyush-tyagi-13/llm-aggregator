@@ -1,0 +1,9 @@
+{
+  "id": "API-010",
+  "category": "api",
+  "description": "Logging middleware",
+  "status": "partial",
+  "files": [
+    "llm_keypool/api/middleware/logging.py"
+  ]
+}

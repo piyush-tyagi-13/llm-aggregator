@@ -1,0 +1,35 @@
+{
+  "default_strategy": "balanced",
+  "strategies": {
+    "priority": {
+      "description": "Manual priority order from fallback_config",
+      "weights": null
+    },
+    "balanced": {
+      "description": "Equal balance of reliability, speed, intelligence",
+      "weights": { "reliability": 0.5, "speed": 0.25, "intelligence": 0.25 }
+    },
+    "smartest": {
+      "description": "Prioritize intelligence with reliability guard",
+      "weights": { "reliability": 0.35, "speed": 0.1, "intelligence": 0.55 }
+    },
+    "fastest": {
+      "description": "Prioritize speed with reliability guard",
+      "weights": { "reliability": 0.35, "speed": 0.55, "intelligence": 0.1 }
+    },
+    "reliable": {
+      "description": "Maximize reliability — for production workloads",
+      "weights": { "reliability": 0.7, "speed": 0.15, "intelligence": 0.15 }
+    },
+    "custom": {
+      "description": "User-defined weight vector (from settings)",
+      "weights": { "reliability": 0.5, "speed": 0.25, "intelligence": 0.25 }
+    }
+  },
+  "fallback": {
+    "max_attempts_same_key": 3,
+    "max_attempts_same_provider": 3,
+    "max_attempts_all_providers": 3,
+    "cooldown_on_failure_ms": 1800000
+  }
+}

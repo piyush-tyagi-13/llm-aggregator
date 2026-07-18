@@ -1,0 +1,9 @@
+{
+  "id": "CORE-007",
+  "category": "core",
+  "description": "Model parser for auto.-c=>128k.tool=true format",
+  "status": "partial",
+  "files": [
+    "llm_keypool/core/model_parser.py"
+  ]
+}

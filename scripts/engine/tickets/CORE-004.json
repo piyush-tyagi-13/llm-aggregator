@@ -1,0 +1,9 @@
+{
+  "id": "CORE-004",
+  "category": "core",
+  "description": "Health checks with auto-probe and manual trigger",
+  "status": "partial",
+  "files": [
+    "llm_keypool/core/health.py"
+  ]
+}

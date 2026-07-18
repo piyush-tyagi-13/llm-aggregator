@@ -1,0 +1,101 @@
+name: Benchmark
+
+on:
+  schedule:
+    # Nightly at 03:00 UTC — catches performance regressions within 24h
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: 'Provider to benchmark (leave empty for all)'
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    # Always run: verify the benchmark script is importable and parseable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Validate benchmark script imports
+        run: uv run pytest -q tests/test_bench_ttft.py -xvs
+
+  benchmark:
+    # Only run when triggered manually (needs real API keys in secrets)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: uv sync --group dev --all-extras
+
+      - name: Restore API key DB cache
+        id: cache-db
+        uses: actions/cache@v4
+        with:
+          path: ~/.llm-apipool/keys.db
+          key: llm-apipool-keys-${{ hashFiles('scripts/bench_ttft.py') }}
+          restore-keys: |
+            llm-apipool-keys-
+
+      - name: Decrypt and load API keys
+        env:
+          BENCH_KEY_PACKAGE: ${{ secrets.BENCH_KEY_PACKAGE }}
+          BENCH_KEY_PASSPHRASE: ${{ secrets.BENCH_KEY_PASSPHRASE }}
+        run: |
+          if [ -n "$BENCH_KEY_PACKAGE" ]; then
+            echo "$BENCH_KEY_PACKAGE" | base64 -d | gpg --batch --yes --passphrase "$BENCH_KEY_PASSPHRASE" -d -o /tmp/keys.json 2>/dev/null
+            if [ -f /tmp/keys.json ]; then
+              python3 << 'PYEOF'
+import json, sqlite3, os
+keys = json.load(open('/tmp/keys.json'))
+conn = sqlite3.connect(os.path.expanduser('~/.llm-apipool/keys.db'))
+conn.execute('PRAGMA journal_mode=WAL')
+for k in keys:
+    conn.execute(
+        'INSERT OR IGNORE INTO api_keys(provider,api_key,capabilities,model,is_active) VALUES(?,?,?,?,1)',
+        (k['provider'], k['api_key'], 'general_purpose', k.get('model', ''))
+    )
+conn.commit()
+print(f'Loaded {len(keys)} keys')
+PYEOF
+            fi
+          fi
+
+      - name: Run benchmark with --ci
+        run: |
+          targets="${{ inputs.provider || '' }}"
+          if [ -n "$targets" ]; then
+            uv run python scripts/bench_ttft.py --ci --provider "$targets"
+          else
+            uv run python scripts/bench_ttft.py --ci
+          fi

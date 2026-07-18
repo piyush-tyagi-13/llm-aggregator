@@ -1,0 +1,9 @@
+{
+  "id": "API-004",
+  "category": "api",
+  "description": "/v1/embeddings with family-based routing",
+  "status": "pending",
+  "files": [
+    "llm_keypool/api/routes/embeddings.py"
+  ]
+}

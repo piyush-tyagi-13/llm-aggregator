@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  llm-apipool:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-apipool
+    restart: unless-stopped
+    ports:
+      - "${HOST_BIND:-127.0.0.1}:${PORT:-8000}:8000"
+    environment:
+      LLM_APIPOOL_DB: /data/keys.db
+      LLM_APIPOOL_API_KEY: "${LLM_APIPOOL_API_KEY:-}"
+      LLM_APIPOOL_ENCRYPTION_KEY: "${LLM_APIPOOL_ENCRYPTION_KEY:-}"
+      LLM_APIPOOL_HEALTH_CHECK_INTERVAL: "${LLM_APIPOOL_HEALTH_CHECK_INTERVAL:-300}"
+      LLM_APIPOOL_FORCE_PROVIDER: "${LLM_APIPOOL_FORCE_PROVIDER:-}"
+      LLM_APIPOOL_FORCE_MODEL: "${LLM_APIPOOL_FORCE_MODEL:-}"
+    volumes:
+      - llm-apipool-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  llm-apipool-data:

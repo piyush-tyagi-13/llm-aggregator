@@ -1,0 +1,9 @@
+{
+  "id": "API-002",
+  "category": "api",
+  "description": "/v1/models with dynamic listing",
+  "status": "partial",
+  "files": [
+    "llm_keypool/api/routes/models.py"
+  ]
+}

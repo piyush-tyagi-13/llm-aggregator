@@ -1,0 +1,9 @@
+{
+  "id": "API-001",
+  "category": "api",
+  "description": "/v1/chat/completions with streaming + non-streaming",
+  "status": "partial",
+  "files": [
+    "llm_keypool/api/routes/chat.py"
+  ]
+}

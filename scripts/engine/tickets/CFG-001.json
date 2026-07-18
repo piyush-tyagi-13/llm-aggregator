@@ -1,0 +1,9 @@
+{
+  "id": "CFG-001",
+  "category": "config",
+  "description": "providers.json with 40+ providers",
+  "status": "partial",
+  "files": [
+    "llm_keypool/config/providers.json"
+  ]
+}

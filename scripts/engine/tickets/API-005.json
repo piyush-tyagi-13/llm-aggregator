@@ -1,0 +1,9 @@
+{
+  "id": "API-005",
+  "category": "api",
+  "description": "Key management endpoints (plaintext storage)",
+  "status": "partial",
+  "files": [
+    "llm_keypool/api/routes/keys.py"
+  ]
+}

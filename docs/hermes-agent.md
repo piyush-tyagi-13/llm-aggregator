@@ -1,6 +1,6 @@
-# Using llm-keypool with Hermes Agent
+# Using llm-apipool with Hermes Agent
 
-Run Hermes Agent entirely on free-tier API keys. llm-keypool acts as a local
+Run Hermes Agent entirely on free-tier API keys. llm-apipool acts as a local
 OpenAI-compatible proxy - Hermes points at it like any other LLM endpoint, and
 the proxy handles key rotation, 429 cooldowns, and provider switching
 transparently.
@@ -20,7 +20,7 @@ hermes-agent (main loop)
     |
     | OpenAI calls + X-Subscriber-ID: hermes.main
     v
-llm-keypool proxy :8000  [capabilities: agentic]
+llm-apipool proxy :8000  [capabilities: agentic]
     |
     +-- mistral key     (mistral-large-latest)
     +-- openrouter key  (hermes-3-405b)
@@ -30,7 +30,7 @@ hermes-agent (delegate/sub-agent calls)
     |
     | OpenAI calls + X-Subscriber-ID: hermes.delegate
     v
-llm-keypool proxy :8001  [capabilities: general_purpose, fast]
+llm-apipool proxy :8001  [capabilities: general_purpose, fast]
     |
     +-- cerebras key    (llama3.3-70b - fast)
     +-- groq key        (llama-3.3-70b-versatile - fast)
@@ -51,10 +51,10 @@ llm-keypool proxy :8001  [capabilities: general_purpose, fast]
 
 ---
 
-## Step 1 - Install llm-keypool
+## Step 1 - Install llm-apipool
 
 ```bash
-pip install 'llm-keypool[proxy]'
+pip install 'llm-apipool[proxy]'
 ```
 
 ---
@@ -64,22 +64,22 @@ pip install 'llm-keypool[proxy]'
 Register agentic-capable keys with `--capabilities agentic`:
 
 ```bash
-llm-keypool add --provider mistral    --key sk_...     --capabilities agentic        --model mistral-large-latest
-llm-keypool add --provider openrouter --key sk-or-...  --capabilities agentic        --model nousresearch/hermes-3-llama-3.1-405b:free
-llm-keypool add --provider groq       --key gsk_...    --capabilities agentic,fast   --model qwen/qwen3-32b
+llm-apipool add --provider mistral    --key sk_...     --capabilities agentic        --model mistral-large-latest
+llm-apipool add --provider openrouter --key sk-or-...  --capabilities agentic        --model nousresearch/hermes-3-llama-3.1-405b:free
+llm-apipool add --provider groq       --key gsk_...    --capabilities agentic,fast   --model qwen/qwen3-32b
 ```
 
 Register fast general-purpose keys for the delegate pool:
 
 ```bash
-llm-keypool add --provider cerebras  --key csk_...  --capabilities general_purpose,fast  --model llama3.3-70b
-llm-keypool add --provider groq      --key gsk_...  --capabilities general_purpose,fast  --model llama-3.3-70b-versatile
+llm-apipool add --provider cerebras  --key csk_...  --capabilities general_purpose,fast  --model llama3.3-70b
+llm-apipool add --provider groq      --key gsk_...  --capabilities general_purpose,fast  --model llama-3.3-70b-versatile
 ```
 
 Check your pool:
 
 ```bash
-llm-keypool status
+llm-apipool status
 ```
 
 ---
@@ -89,13 +89,13 @@ llm-keypool status
 **Agentic proxy (Hermes main loop):**
 
 ```bash
-llm-keypool proxy --port 8000 --capabilities agentic
+llm-apipool proxy --port 8000 --capabilities agentic
 ```
 
 **Delegate proxy (Hermes sub-agent/delegation calls):**
 
 ```bash
-llm-keypool proxy --port 8001 --capabilities general_purpose,fast
+llm-apipool proxy --port 8001 --capabilities general_purpose,fast
 ```
 
 Verify:
@@ -120,20 +120,20 @@ model:
   default: mistral-large-latest
   provider: ''
   base_url: 'http://127.0.0.1:8000/v1'
-  api_key: 'keypool'
+  api_key: 'apipool'
 
 # Delegated sub-agents - draws from fast general pool
 delegation:
   model: 'llama-3.3-70b-versatile'
   provider: ''
   base_url: 'http://127.0.0.1:8001/v1'
-  api_key: 'keypool'
+  api_key: 'apipool'
 
 # Fallback when primary fails - also use delegate pool
 fallback_model:
   provider: ''
   base_url: 'http://127.0.0.1:8001/v1'
-  api_key: 'keypool'
+  api_key: 'apipool'
   model: 'llama-3.3-70b-versatile'
 ```
 
@@ -161,7 +161,7 @@ curl http://127.0.0.1:8000/v1/chat/completions \
 
 Create two plist files:
 
-**`~/Library/LaunchAgents/ai.llmkeypool.proxy.plist`** (agentic, :8000):
+**`~/Library/LaunchAgents/ai.llmapipool.proxy.plist`** (agentic, :8000):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -170,10 +170,10 @@ Create two plist files:
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>ai.llmkeypool.proxy</string>
+  <string>ai.llmapipool.proxy</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/path/to/llm-keypool</string>
+    <string>/path/to/llm-apipool</string>
     <string>proxy</string>
     <string>--host</string><string>127.0.0.1</string>
     <string>--port</string><string>8000</string>
@@ -181,13 +181,13 @@ Create two plist files:
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
-  <key>StandardOutPath</key><string>/tmp/llm-keypool-proxy.log</string>
-  <key>StandardErrorPath</key><string>/tmp/llm-keypool-proxy.err</string>
+  <key>StandardOutPath</key><string>/tmp/llm-apipool-proxy.log</string>
+  <key>StandardErrorPath</key><string>/tmp/llm-apipool-proxy.err</string>
 </dict>
 </plist>
 ```
 
-**`~/Library/LaunchAgents/ai.llmkeypool.proxy-delegate.plist`** (general+fast, :8001):
+**`~/Library/LaunchAgents/ai.llmapipool.proxy-delegate.plist`** (general+fast, :8001):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -196,10 +196,10 @@ Create two plist files:
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>ai.llmkeypool.proxy.delegate</string>
+  <string>ai.llmapipool.proxy.delegate</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/path/to/llm-keypool</string>
+    <string>/path/to/llm-apipool</string>
     <string>proxy</string>
     <string>--host</string><string>127.0.0.1</string>
     <string>--port</string><string>8001</string>
@@ -207,8 +207,8 @@ Create two plist files:
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
-  <key>StandardOutPath</key><string>/tmp/llm-keypool-proxy-delegate.log</string>
-  <key>StandardErrorPath</key><string>/tmp/llm-keypool-proxy-delegate.err</string>
+  <key>StandardOutPath</key><string>/tmp/llm-apipool-proxy-delegate.log</string>
+  <key>StandardErrorPath</key><string>/tmp/llm-apipool-proxy-delegate.err</string>
 </dict>
 </plist>
 ```
@@ -216,8 +216,8 @@ Create two plist files:
 Load both:
 
 ```bash
-launchctl load ~/Library/LaunchAgents/ai.llmkeypool.proxy.plist
-launchctl load ~/Library/LaunchAgents/ai.llmkeypool.proxy-delegate.plist
+launchctl load ~/Library/LaunchAgents/ai.llmapipool.proxy.plist
+launchctl load ~/Library/LaunchAgents/ai.llmapipool.proxy-delegate.plist
 ```
 
 ---
@@ -228,13 +228,13 @@ View token spend by subscriber:
 
 ```bash
 # summary table (last 7 days)
-llm-keypool audit --summary
+llm-apipool audit --summary
 
 # raw rows for hermes.main only
-llm-keypool audit --subscriber hermes.main
+llm-apipool audit --subscriber hermes.main
 
 # last 30 days
-llm-keypool audit --summary --days 30
+llm-apipool audit --summary --days 30
 ```
 
 Or via HTTP while the proxy is running:
@@ -260,26 +260,26 @@ curl http://127.0.0.1:8000/v1/chat/completions \
 ## Troubleshooting
 
 **`Connection refused` on port 8000 or 8001**
-Proxy not running. Start with `llm-keypool proxy --port 8000 --capabilities agentic`.
+Proxy not running. Start with `llm-apipool proxy --port 8000 --capabilities agentic`.
 
 **`all_keys_exhausted` error**
 All keys matching the requested capabilities are in cooldown. Check:
 ```bash
-llm-keypool status
+llm-apipool status
 ```
 Add more keys or wait for cooldowns to clear.
 
 **Key stuck in cooldown after quota reset**
 ```bash
-llm-keypool clear-cooldown --id <ID>
+llm-apipool clear-cooldown --id <ID>
 ```
 
 **No agentic keys showing in status**
 Keys were registered with the old `--category` flag. Update them:
 ```bash
 # deactivate and re-add with correct capabilities
-llm-keypool deactivate --id <ID>
-llm-keypool add --provider mistral --key sk_... --capabilities agentic --model mistral-large-latest
+llm-apipool deactivate --id <ID>
+llm-apipool add --provider mistral --key sk_... --capabilities agentic --model mistral-large-latest
 ```
 
 ---
@@ -293,4 +293,4 @@ llm-keypool add --provider mistral --key sk_... --capabilities agentic --model m
 | OpenRouter | `qwen/qwen3-32b:free` | Strong reasoning |
 | Groq | `qwen/qwen3-32b` | Fast + agentic |
 
-Run `llm-keypool providers` for full list, or `curl http://127.0.0.1:8000/v1/models`.
+Run `llm-apipool providers` for full list, or `curl http://127.0.0.1:8000/v1/models`.

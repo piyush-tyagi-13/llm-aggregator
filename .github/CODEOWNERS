@@ -1,0 +1,6 @@
+# Default owners
+* @GFardad
+
+# Security-critical paths
+llm_apipool/core/encryption.py @GFardad
+llm_apipool/api/middleware/auth.py @GFardad

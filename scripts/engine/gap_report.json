@@ -1,0 +1,515 @@
+{
+  "meta": {
+    "name": "FreeLLMAPI Translation to llm-apipool",
+    "version": "1.0.0",
+    "updated": "2026-06-23"
+  },
+  "summary": {
+    "done": 12,
+    "partial": 15,
+    "pending": 4
+  },
+  "total": 31,
+  "requirements": [
+    {
+      "id": "CORE-001",
+      "category": "core",
+      "description": "Router with 7 strategies: auto, priority, balanced, smartest, fastest, reliable, custom",
+      "status": "done",
+      "checks_passed": 2,
+      "checks_failed": 0,
+      "details": [
+        "  OK Exists STRATEGY_AUTO = 'auto' constant",
+        "  OK All 7 constants in VALID_STRATEGIES"
+      ],
+      "files": [
+        "llm_keypool/core/router.py"
+      ]
+    },
+    {
+      "id": "CORE-002",
+      "category": "core",
+      "description": "Thompson sampling scoring with Beta posterior",
+      "status": "done",
+      "checks_passed": 4,
+      "checks_failed": 0,
+      "details": [
+        "  OK Beta(1,1) prior",
+        "  OK sample_beta() function",
+        "  OK combine_score() with guardrails",
+        "  OK BANDIT_PRESETS includes 'auto'"
+      ],
+      "files": [
+        "llm_keypool/core/scoring.py"
+      ]
+    },
+    {
+      "id": "CORE-003",
+      "category": "core",
+      "description": "Rate limiter with RPM/RPD/TPM/TPD tracking and penalty decay",
+      "status": "done",
+      "checks_passed": 4,
+      "checks_failed": 0,
+      "details": [
+        "  OK can_make_request() function",
+        "  OK can_use_tokens() function",
+        "  OK set_cooldown() function",
+        "  OK is_on_cooldown() function"
+      ],
+      "files": [
+        "llm_keypool/core/ratelimit.py"
+      ]
+    },
+    {
+      "id": "CORE-004",
+      "category": "core",
+      "description": "Health checks with auto-probe and manual trigger",
+      "status": "partial",
+      "checks_passed": 2,
+      "checks_failed": 1,
+      "details": [
+        "  OK check_key_health() exists",
+        "  OK check_all_keys() exists",
+        "  MISS Auto-probe scheduling (periodic check)"
+      ],
+      "files": [
+        "llm_keypool/core/health.py"
+      ]
+    },
+    {
+      "id": "CORE-005",
+      "category": "core",
+      "description": "Sticky sessions with TTL and runtime toggle",
+      "status": "done",
+      "checks_passed": 5,
+      "checks_failed": 0,
+      "details": [
+        "  OK get_or_create() exists",
+        "  OK release() exists",
+        "  OK on_success() exists",
+        "  OK is_sticky_enabled() respects runtime override",
+        "  OK UI toggle integration"
+      ],
+      "files": [
+        "llm_keypool/core/sticky.py"
+      ]
+    },
+    {
+      "id": "CORE-006",
+      "category": "core",
+      "description": "Context handoff on model switch",
+      "status": "done",
+      "checks_passed": 4,
+      "checks_failed": 0,
+      "details": [
+        "  OK record_incoming() exists",
+        "  OK maybe_inject() exists",
+        "  OK record_successful() exists",
+        "  OK has_prior_model() exists"
+      ],
+      "files": [
+        "llm_keypool/core/handoff.py"
+      ]
+    },
+    {
+      "id": "CORE-007",
+      "category": "core",
+      "description": "Model parser for auto.-c=>128k.tool=true format",
+      "status": "partial",
+      "checks_passed": 3,
+      "checks_failed": 3,
+      "details": [
+        "  OK Parses context filters (>=, >, =, <=, <)",
+        "  MISS Parses tool=true/false",
+        "  MISS Parses vision=true/false",
+        "  MISS Parses provider=xxx",
+        "  OK Parses strategy override via .strategy suffix",
+        "  OK Returns (base_model, ModelFilter, strategy_override)"
+      ],
+      "files": [
+        "llm_keypool/core/model_parser.py"
+      ]
+    },
+    {
+      "id": "CORE-008",
+      "category": "core",
+      "description": "Fallback with 3+3+3+next strategy",
+      "status": "done",
+      "checks_passed": 5,
+      "checks_failed": 0,
+      "details": [
+        "  OK Phase 1: 3 attempts same model+same key (non-429)",
+        "  OK Phase 2: 3 attempts same model+other keys same provider",
+        "  OK Phase 3: 3 attempts same model+all other providers",
+        "  OK Phase 4: Next model in priority",
+        "  OK 30-minute cooldown after 3 failures"
+      ],
+      "files": [
+        "llm_keypool/core/fallback.py"
+      ]
+    },
+    {
+      "id": "CORE-009",
+      "category": "core",
+      "description": "Embeddings support with family-based routing",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  MISS Route to embedding-optimized models",
+        "  OK Family-based provider selection"
+      ],
+      "files": [
+        "llm_keypool/core/embeddings.py"
+      ]
+    },
+    {
+      "id": "CORE-010",
+      "category": "core",
+      "description": "Model metadata and catalog",
+      "status": "done",
+      "checks_passed": 2,
+      "checks_failed": 0,
+      "details": [
+        "  OK filter_models() by capabilities",
+        "  OK Static catalog without premium"
+      ],
+      "files": [
+        "llm_keypool/core/model_metadata.py",
+        "llm_keypool/core/catalog.py"
+      ]
+    },
+    {
+      "id": "PROV-001",
+      "category": "providers",
+      "description": "All 16 provider adapters registered via @register decorator",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 3,
+      "details": [
+        "  OK 16 adapter files exist (16 found)",
+        "  MISS Each has @register decorator",
+        "  MISS Each extends OpenAICompatProvider or BaseProvider",
+        "  MISS Each has: platform, name, default_model, base_url"
+      ],
+      "files": [
+        "llm_keypool/providers/adapters/"
+      ]
+    },
+    {
+      "id": "PROV-002",
+      "category": "providers",
+      "description": "Provider registry with get_provider, has_provider, list_providers",
+      "status": "done",
+      "checks_passed": 4,
+      "checks_failed": 0,
+      "details": [
+        "  OK @register decorator",
+        "  OK get_provider()",
+        "  OK has_provider()",
+        "  OK list_providers()"
+      ],
+      "files": [
+        "llm_keypool/providers/registry.py"
+      ]
+    },
+    {
+      "id": "API-001",
+      "category": "api",
+      "description": "/v1/chat/completions with streaming + non-streaming",
+      "status": "partial",
+      "checks_passed": 2,
+      "checks_failed": 2,
+      "details": [
+        "  MISS POST /v1/chat/completions endpoint",
+        "  OK SSE streaming response",
+        "  MISS Tool calling support (tools parameter)",
+        "  OK Model filter parsing"
+      ],
+      "files": [
+        "llm_keypool/api/routes/chat.py"
+      ]
+    },
+    {
+      "id": "API-002",
+      "category": "api",
+      "description": "/v1/models with dynamic listing",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 2,
+      "details": [
+        "  MISS GET /v1/models endpoint",
+        "  OK Returns all available models",
+        "  MISS OpenAI-compatible response format"
+      ],
+      "files": [
+        "llm_keypool/api/routes/models.py"
+      ]
+    },
+    {
+      "id": "API-003",
+      "category": "api",
+      "description": "/v1/responses (Codex CLI wire format)",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  MISS POST /v1/responses endpoint",
+        "  OK Builds response object"
+      ],
+      "files": [
+        "llm_keypool/api/routes/responses.py"
+      ]
+    },
+    {
+      "id": "API-004",
+      "category": "api",
+      "description": "/v1/embeddings with family-based routing",
+      "status": "pending",
+      "checks_passed": 0,
+      "checks_failed": 1,
+      "details": [
+        "  MISS POST /v1/embeddings endpoint"
+      ],
+      "files": [
+        "llm_keypool/api/routes/embeddings.py"
+      ]
+    },
+    {
+      "id": "API-005",
+      "category": "api",
+      "description": "Key management endpoints (plaintext storage)",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  OK CRUD operations for keys",
+        "  MISS Plaintext storage (no encryption)"
+      ],
+      "files": [
+        "llm_keypool/api/routes/keys.py"
+      ]
+    },
+    {
+      "id": "API-006",
+      "category": "api",
+      "description": "Health check endpoints",
+      "status": "pending",
+      "checks_passed": 0,
+      "checks_failed": 2,
+      "details": [
+        "  MISS GET /health endpoint",
+        "  MISS GET /health/check endpoint"
+      ],
+      "files": [
+        "llm_keypool/api/routes/health.py"
+      ]
+    },
+    {
+      "id": "API-007",
+      "category": "api",
+      "description": "Analytics endpoints",
+      "status": "pending",
+      "checks_passed": 0,
+      "checks_failed": 2,
+      "details": [
+        "  MISS Usage statistics",
+        "  MISS Error breakdowns"
+      ],
+      "files": [
+        "llm_keypool/api/routes/analytics.py"
+      ]
+    },
+    {
+      "id": "API-008",
+      "category": "api",
+      "description": "Settings with routing strategy, weights, sticky/handoff toggles",
+      "status": "done",
+      "checks_passed": 3,
+      "checks_failed": 0,
+      "details": [
+        "  OK GET/PUT routing strategy",
+        "  OK GET/PUT sticky toggle",
+        "  OK GET/PUT handoff mode"
+      ],
+      "files": [
+        "llm_keypool/api/routes/settings.py"
+      ]
+    },
+    {
+      "id": "API-009",
+      "category": "api",
+      "description": "Auth middleware (optional)",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  OK Optional authentication",
+        "  MISS Pass-through mode"
+      ],
+      "files": [
+        "llm_keypool/api/middleware/auth.py"
+      ]
+    },
+    {
+      "id": "API-010",
+      "category": "api",
+      "description": "Logging middleware",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  OK Request/response logging",
+        "  MISS Latency tracking"
+      ],
+      "files": [
+        "llm_keypool/api/middleware/logging.py"
+      ]
+    },
+    {
+      "id": "DB-001",
+      "category": "db",
+      "description": "Combined schema with all FreeLLMAPI tables",
+      "status": "done",
+      "checks_passed": 6,
+      "checks_failed": 0,
+      "details": [
+        "  OK models table",
+        "  OK fallback_config table",
+        "  OK profiles table",
+        "  OK settings table",
+        "  OK sticky_sessions table",
+        "  OK request_log table"
+      ],
+      "files": [
+        "llm_keypool/db/schema.py"
+      ]
+    },
+    {
+      "id": "DB-002",
+      "category": "db",
+      "description": "Database queries module",
+      "status": "done",
+      "checks_passed": 1,
+      "checks_failed": 0,
+      "details": [
+        "  OK CRUD operations for new tables"
+      ],
+      "files": [
+        "llm_keypool/db/queries.py"
+      ]
+    },
+    {
+      "id": "DB-003",
+      "category": "db",
+      "description": "Alembic migration 0008 for FreeLLMAPI tables",
+      "status": "done",
+      "checks_passed": 2,
+      "checks_failed": 0,
+      "details": [
+        "  OK Creates all new tables",
+        "  OK Proper upgrade() and downgrade()"
+      ],
+      "files": [
+        "alembic/versions/0008_add_freellmapi_tables.py"
+      ]
+    },
+    {
+      "id": "FE-001",
+      "category": "frontend",
+      "description": "React dashboard with all pages",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 4,
+      "details": [
+        "  MISS KeysPage: key management",
+        "  MISS FallbackPage: fallback chain + profiles",
+        "  MISS AnalyticsPage: charts + breakdowns",
+        "  OK PlaygroundPage: test prompts",
+        "  MISS SettingsPage: routing strategy, weights, toggles"
+      ],
+      "files": [
+        "frontend/src/components/KeyManager.tsx",
+        "frontend/src/components/TestConsole.tsx"
+      ]
+    },
+    {
+      "id": "SEC-001",
+      "category": "security",
+      "description": "Plaintext API key storage (no encryption)",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 2,
+      "details": [
+        "  OK api_key stored as plaintext TEXT",
+        "  MISS No encryption/decryption logic",
+        "  MISS File permissions 600 on DB"
+      ],
+      "files": [
+        "llm_keypool/key_store.py"
+      ]
+    },
+    {
+      "id": "CFG-001",
+      "category": "config",
+      "description": "providers.json with 40+ providers",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  OK All providers listed",
+        "  MISS Limits configured"
+      ],
+      "files": [
+        "llm_keypool/config/providers.json"
+      ]
+    },
+    {
+      "id": "CFG-002",
+      "category": "config",
+      "description": "model_quality.json with 4 tiers",
+      "status": "pending",
+      "checks_passed": 0,
+      "checks_failed": 1,
+      "details": [
+        "  MISS 4 tiers: Frontier, High-Performance, Good OSS, Fallback"
+      ],
+      "files": [
+        "llm_keypool/config/model_quality.json"
+      ]
+    },
+    {
+      "id": "CFG-003",
+      "category": "config",
+      "description": "default_strategies.json with routing weights",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 1,
+      "details": [
+        "  OK Default routing weights",
+        "  MISS Strategy presets"
+      ],
+      "files": [
+        "llm_keypool/config/default_strategies.json"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "category": "tests",
+      "description": "319+ tests passing",
+      "status": "partial",
+      "checks_passed": 1,
+      "checks_failed": 4,
+      "details": [
+        "  OK All tests pass with no errors (count=319)",
+        "  MISS Coverage for core modules",
+        "  MISS Coverage for provider adapters",
+        "  MISS Coverage for API routes",
+        "  MISS Coverage for database"
+      ],
+      "files": [
+        ""
+      ]
+    }
+  ]
+}

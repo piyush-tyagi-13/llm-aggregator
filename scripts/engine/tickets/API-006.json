@@ -1,0 +1,9 @@
+{
+  "id": "API-006",
+  "category": "api",
+  "description": "Health check endpoints",
+  "status": "pending",
+  "files": [
+    "llm_keypool/api/routes/health.py"
+  ]
+}

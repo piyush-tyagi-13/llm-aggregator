@@ -1,14 +1,18 @@
 """Tests for Rotator - key selection, rotation, 429 handling, cooldown strategies."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 
 import pytest
 
-from llm_keypool.key_store import KeyStore
-from llm_keypool.rotator import (
-    Rotator, _next_utc_midnight, _next_first_of_month, _rolling, _FALLBACK_STRATEGIES,
+from llm_apipool.key_store import KeyStore
+from llm_apipool.rotator import (
+    Rotator,
+    _next_utc_midnight,
+    _next_first_of_month,
+    _rolling,
+    _FALLBACK_STRATEGIES,
 )
 
 PROVIDER_CONFIGS = {
@@ -64,6 +68,7 @@ def _add_key(store, provider, api_key, category="general_purpose", model=None):
 
 # --- cooldown time helpers ---
 
+
 def test_next_utc_midnight_is_tomorrow_midnight():
     result = _next_utc_midnight()
     parsed = datetime.fromisoformat(result)
@@ -100,11 +105,18 @@ def test_rolling_65_is_about_65s_ahead():
 
 
 def test_fallback_strategies_all_present():
-    expected = {"daily_utc_midnight", "first_of_calendar_month", "rolling_60", "rolling_65", "rolling_120"}
+    expected = {
+        "daily_utc_midnight",
+        "first_of_calendar_month",
+        "rolling_60",
+        "rolling_65",
+        "rolling_120",
+    }
     assert expected.issubset(set(_FALLBACK_STRATEGIES.keys()))
 
 
 # --- get_best_key ---
+
 
 def test_get_best_key_no_keys(rotator):
     assert rotator.get_best_key("general_purpose") is None
@@ -129,7 +141,6 @@ def test_get_best_key_uses_provider_default_when_no_model(store, rotator):
     store.register_key("groq", "key1", "general_purpose", None, {})
     key = rotator.get_best_key("general_purpose")
     assert key["model"] == "llama-3.3-70b-versatile"
-
 
 
 def test_get_best_key_skips_inactive(store, rotator):
@@ -164,6 +175,7 @@ def test_get_best_key_all_cooled_down_returns_none(store, rotator):
 
 # --- rotation ---
 
+
 def test_rotates_after_rotate_every_slots(store):
     rot = Rotator(store, PROVIDER_CONFIGS, rotate_every=2)
     _add_key(store, "groq", "key1")
@@ -194,6 +206,7 @@ def test_rotation_uses_both_keys(store):
 
 
 # --- 429 handling ---
+
 
 def test_handle_429_sets_cooldown_on_key(store, rotator):
     _add_key(store, "groq", "key1")
@@ -253,6 +266,7 @@ def test_handle_success_increments_usage(store, rotator):
 
 # --- get_earliest_retry ---
 
+
 def test_get_earliest_retry_no_keys(rotator):
     assert rotator.get_earliest_retry("general_purpose") is None
 
@@ -279,6 +293,7 @@ def test_get_earliest_retry_returns_min_cooldown(store, rotator):
 
 
 # --- rotation state persistence ---
+
 
 def test_rotation_state_persisted(store):
     rot = Rotator(store, PROVIDER_CONFIGS, rotate_every=2)

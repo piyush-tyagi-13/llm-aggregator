@@ -1,0 +1,9 @@
+{
+  "id": "CORE-005",
+  "category": "core",
+  "description": "Sticky sessions with TTL and runtime toggle",
+  "status": "partial",
+  "files": [
+    "llm_keypool/core/sticky.py"
+  ]
+}

@@ -1,3 +1,19 @@
+# Node
+node_modules/
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+web/dist/
+
+# Coverage / reports
+.coverage
+htmlcov/
+*.heapsnapshot
+
+# Generated / tooling artifacts
+graphify-out/
+.matrixx/
+
 # Database - contains registered API keys, never commit
 db/
 *.db
@@ -17,6 +33,19 @@ dist/
 build/
 .eggs/
 *.egg
+
+# Tool cache
+.mypy_cache/
+.ruff_cache/
+.codebase/
+.flowdeck/
+
+# Subprojects / vendor
+.freellmapi/
+.opencode/
+
+# Session artifacts
+summary.md
 
 # Virtual environments
 .venv/

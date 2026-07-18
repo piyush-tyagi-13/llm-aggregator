@@ -1,0 +1,9 @@
+{
+  "id": "API-007",
+  "category": "api",
+  "description": "Analytics endpoints",
+  "status": "pending",
+  "files": [
+    "llm_keypool/api/routes/analytics.py"
+  ]
+}

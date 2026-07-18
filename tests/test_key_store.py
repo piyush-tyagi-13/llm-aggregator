@@ -1,15 +1,14 @@
 """Tests for KeyStore - CRUD, cooldown, usage tracking, migration."""
+
 from __future__ import annotations
 
 import shutil
 import sqlite3
-import tempfile
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 
 import pytest
 
-from llm_keypool.key_store import KeyStore
+from llm_apipool.key_store import KeyStore
 
 
 @pytest.fixture
@@ -24,8 +23,11 @@ def store(db_path):
 
 # --- registration ---
 
+
 def test_register_key_success(store):
-    result = store.register_key("groq", "gsk_test123", "general_purpose", "llama-3.3-70b-versatile", {})
+    result = store.register_key(
+        "groq", "gsk_test123", "general_purpose", "llama-3.3-70b-versatile", {}
+    )
     assert result["success"] is True
     assert "groq" in result["message"]
 
@@ -46,6 +48,7 @@ def test_register_multiple_providers(store):
 
 
 # --- retrieval ---
+
 
 def test_get_all_keys_empty(store):
     assert store.get_all_keys() == []
@@ -97,6 +100,7 @@ def test_get_key_by_id_missing(store):
 
 # --- deactivation ---
 
+
 def test_deactivate_key(store):
     store.register_key("groq", "key1", "general_purpose", None, {})
     key = store.get_all_keys()[0]
@@ -106,6 +110,7 @@ def test_deactivate_key(store):
 
 
 # --- cooldown ---
+
 
 def test_clear_cooldown(store):
     store.register_key("groq", "key1", "general_purpose", None, {})
@@ -119,6 +124,7 @@ def test_clear_cooldown(store):
 
 
 # --- usage tracking ---
+
 
 def test_record_usage_increments_counters(store):
     store.register_key("groq", "key1", "general_purpose", None, {})
@@ -145,6 +151,7 @@ def test_record_usage_429_sets_cooldown(store):
 
 # --- update ---
 
+
 def test_update_key_model(store):
     store.register_key("groq", "key1", "general_purpose", "old-model", {})
     key = store.get_all_keys()[0]
@@ -163,6 +170,7 @@ def test_update_key_api_key(store):
 
 # --- category filtering ---
 
+
 def test_active_keys_category_filter(store):
     store.register_key("groq", "key1", "general_purpose", None, {})
     store.register_key("mistral", "key2", "general_purpose", None, {})
@@ -174,6 +182,7 @@ def test_active_keys_category_filter(store):
 
 
 # --- rotation state ---
+
 
 def test_save_and_load_rotation_state(store):
     store.register_key("groq", "key1", "general_purpose", None, {})
@@ -193,6 +202,7 @@ def test_load_rotation_state_empty(store):
 
 
 # --- DB migration ---
+
 
 def test_db_migration_from_old_path(tmp_path):
     """Old ~/.llm-aggregator/keys.db auto-migrated to new path."""

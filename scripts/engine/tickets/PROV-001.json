@@ -1,0 +1,9 @@
+{
+  "id": "PROV-001",
+  "category": "providers",
+  "description": "All 16 provider adapters registered via @register decorator",
+  "status": "partial",
+  "files": [
+    "llm_keypool/providers/adapters/"
+  ]
+}

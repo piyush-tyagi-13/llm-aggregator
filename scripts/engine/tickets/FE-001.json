@@ -1,0 +1,10 @@
+{
+  "id": "FE-001",
+  "category": "frontend",
+  "description": "React dashboard with all pages",
+  "status": "partial",
+  "files": [
+    "frontend/src/components/KeyManager.tsx",
+    "frontend/src/components/TestConsole.tsx"
+  ]
+}

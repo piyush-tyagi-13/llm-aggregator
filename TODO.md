@@ -2,7 +2,7 @@
 
 ## LangSmith token split (input vs output)
 
-**File:** `llm_keypool/langchain_wrapper.py`
+**File:** `llm_apipool/langchain_wrapper.py`
 
 **Problem:** LangSmith expects separate `input_tokens` and `output_tokens` counts for accurate cost and usage dashboards. The aggregator currently only reports a combined `tokens_used` total from each provider response. As a workaround, `usage_metadata` and `token_usage` in `llm_output` are populated with `input_tokens=0` and `output_tokens=total`, which means LangSmith shows all tokens as output tokens.
 

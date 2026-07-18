@@ -1,0 +1,9 @@
+{
+  "id": "CORE-006",
+  "category": "core",
+  "description": "Context handoff on model switch",
+  "status": "pending",
+  "files": [
+    "llm_keypool/core/handoff.py"
+  ]
+}

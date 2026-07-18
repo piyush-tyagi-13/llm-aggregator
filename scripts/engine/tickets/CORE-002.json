@@ -1,0 +1,9 @@
+{
+  "id": "CORE-002",
+  "category": "core",
+  "description": "Thompson sampling scoring with Beta posterior",
+  "status": "partial",
+  "files": [
+    "llm_keypool/core/scoring.py"
+  ]
+}

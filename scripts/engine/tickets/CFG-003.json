@@ -1,0 +1,9 @@
+{
+  "id": "CFG-003",
+  "category": "config",
+  "description": "default_strategies.json with routing weights",
+  "status": "partial",
+  "files": [
+    "llm_keypool/config/default_strategies.json"
+  ]
+}
