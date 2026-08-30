@@ -74,24 +74,31 @@ class Rotator:
 
         self._order: dict[str, list[int]] = {}
         self._cursor: dict[str, int] = {}
-        self._slot_count: dict[int, int] = {}
+        # slot_count indexed per cap_key to avoid cross-voice pollution
+        # (fast/agentic/general_purpose share the same keys but must rotate
+        # independently — see issue #10)
+        self._slot_count: dict[str, dict[int, int]] = {}
         self._loaded_cap_keys: set[str] = set()
         # track which cap_key context each key_id was last selected under
         self._key_last_cap_key: dict[int, str] = {}
+
+    def _slot(self, ck: str) -> dict[int, int]:
+        return self._slot_count.setdefault(ck, {})
 
     def _load_state(self, ck: str):
         if ck in self._loaded_cap_keys:
             return
         cursor, slot_counts = self.store.load_rotation_state(ck)
         self._cursor[ck] = cursor
-        self._slot_count.update(slot_counts)
+        # slot_counts are now scoped per cap_key (issue #10)
+        self._slot_count[ck] = slot_counts
         self._loaded_cap_keys.add(ck)
 
     def _persist_state(self, ck: str):
         self.store.save_rotation_state(
             ck,
             self._cursor.get(ck, 0),
-            self._slot_count,
+            self._slot_count.get(ck, {}),
         )
 
     def _ensure_order(self, ck: str, capabilities: list[str], active_ids: set[int]):
@@ -116,7 +123,7 @@ class Rotator:
         else:
             self._cursor[ck] %= max(len(self._order[ck]), 1)
         for k in ordered:
-            self._slot_count.setdefault(k["id"], 0)
+            self._slot(ck).setdefault(k["id"], 0)
 
     def get_best_key(
         self,
@@ -135,17 +142,28 @@ class Rotator:
 
         order  = self._order[ck]
         cursor = self._cursor.get(ck, 0) % len(order)
+        slots = self._slot(ck)
 
-        reset_done = False
-        for _ in range(len(order) + 1):
+        # Bug 1 (issue #9): the old reset compared the advanced `cursor` against
+        # `_cursor[ck]` which was already overwritten at the end of the previous
+        # call, so the reset never fired and the last provider repeated forever.
+        # Fix: scan one full cycle; if every provider is saturated, reset this
+        # cap_key's slot_count and advance the cursor by one so the last
+        # saturated provider is not immediately re-selected.
+        scanned = 0
+        while True:
             key_id = order[cursor % len(order)]
-            if key_id in active_map and self._slot_count.get(key_id, 0) < self.rotate_every:
+            if key_id in active_map and slots.get(key_id, 0) < self.rotate_every:
                 break
             cursor = (cursor + 1) % len(order)
-            if not reset_done and cursor == self._cursor.get(ck, 0) % len(order):
+            scanned += 1
+            if scanned >= len(order):
                 for kid in order:
-                    self._slot_count[kid] = 0
-                reset_done = True
+                    slots[kid] = 0
+                scanned = 0
+                cursor = (cursor + 1) % len(order)
+                if all(slots.get(order[c], 0) >= self.rotate_every for c in range(len(order))):
+                    break
         else:
             return None
 
@@ -158,7 +176,7 @@ class Rotator:
         if "{account_id}" in base_url:
             base_url = base_url.format(account_id=extra.get("account_id", ""))
 
-        slot_pos = self._slot_count.get(best["id"], 0) + 1
+        slot_pos = slots.get(best["id"], 0) + 1
         self._key_last_cap_key[best["id"]] = ck
 
         return {
@@ -231,9 +249,13 @@ class Rotator:
             cfg = self.configs.get(provider, {})
             cooldown = _fallback_from_config(cfg)()
         self.store.record_usage(key_id, tokens=0, was_429=True, cooldown_until=cooldown)
-        self._slot_count[key_id] = self._slot_count.get(key_id, 0) + 1
+        # Bug 2 (issue #10): scope slot_count to the cap_key that actually
+        # consumed the request, so a 429 in one voice does not pollute the
+        # other voice's rotation. The cooldown (get_active_keys) already
+        # excludes the key from all voices.
         ck = self._key_last_cap_key.get(key_id, "")
         if ck:
+            self._slot(ck)[key_id] = self._slot(ck).get(key_id, 0) + 1
             self._persist_state(ck)
         self.store.log_audit(
             subscriber_id=subscriber_id,
@@ -259,9 +281,10 @@ class Rotator:
         headers = headers or {}
         cooldown = extract_cooldown(provider, headers, was_429=False) if provider else None
         self.store.record_usage(key_id, tokens=tokens_used, was_429=False, cooldown_until=cooldown)
-        self._slot_count[key_id] = self._slot_count.get(key_id, 0) + 1
+        # Bug 2 (issue #10): same scoping fix as handle_429.
         ck = self._key_last_cap_key.get(key_id, "")
         if ck:
+            self._slot(ck)[key_id] = self._slot(ck).get(key_id, 0) + 1
             self._persist_state(ck)
         self.store.log_audit(
             subscriber_id=subscriber_id,
